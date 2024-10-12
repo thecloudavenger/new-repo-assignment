@@ -11,6 +11,9 @@ export type ProcurementRecord = {
   publishDate: string;
   value : number;
   currency: string;
+  stage: string;
+  close_date: string;
+  award_date: string;
   buyer: {
     id: string;
     name: string;

@@ -53,6 +53,25 @@ function RecordsTable(props: Props) {
           </span>
         ),
       },
+      {
+        title: "Stage",
+        render: (record: ProcurementRecord) => {
+          if (record.stage === "TENDER") {
+            const closeDate = new Date(record.close_date);
+            const now = new Date();
+            return closeDate ? 
+              (closeDate > now ? 
+                `Open until ${closeDate.toLocaleDateString()}` : 
+                "Closed") 
+              : 
+              "Open until TBD";
+          } else if (record.stage === "CONTRACT") {
+            return `Awarded on ${new Date(record.award_date).toLocaleDateString()}`;
+          }
+          
+          return "Unknown stage";
+        }
+      },
       
     ];
   }, []);
