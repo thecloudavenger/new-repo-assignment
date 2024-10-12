@@ -1,6 +1,6 @@
 # Stotles work sample assignment
 
-## Getting started
+## Getting started 
 
 This sample codebase consists of a separate client & server code.
 
