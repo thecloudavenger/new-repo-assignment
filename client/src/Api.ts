@@ -9,6 +9,8 @@ export type ProcurementRecord = {
   title: string;
   description: string;
   publishDate: string;
+  value : number;
+  currency: string;
   buyer: {
     id: string;
     name: string;
