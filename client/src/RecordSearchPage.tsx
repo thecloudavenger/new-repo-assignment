@@ -2,7 +2,9 @@ import { Button } from "antd";
 import React from "react";
 import Api, { ProcurementRecord } from "./Api";
 import RecordSearchFilters, { SearchFilters } from "./RecordSearchFilters";
+import RecordBuyerFilters, { BuyerFilters } from "./RecordBuyerFilters";
 import RecordsTable from "./RecordsTable";
+
 
 /**
  * This component implements very basic pagination.
@@ -20,10 +22,12 @@ const PAGE_SIZE = 10;
 
 function RecordSearchPage() {
   const [page, setPage] = React.useState<number>(1);
+
   const [searchFilters, setSearchFilters] = React.useState<SearchFilters>({
     query: "",
+    buyerId: "0",
   });
-
+  
   const [records, setRecords] = React.useState<
     ProcurementRecord[] | undefined
   >();
@@ -35,6 +39,7 @@ function RecordSearchPage() {
       const api = new Api();
       const response = await api.searchRecords({
         textSearch: searchFilters.query,
+        buyerId: searchFilters.buyerId,
         limit: PAGE_SIZE,
         offset: PAGE_SIZE * (page - 1),
       });
@@ -54,15 +59,29 @@ function RecordSearchPage() {
     setPage(1); // reset pagination state
   }, []);
 
+  const handleBuyerFilters = React.useCallback((newFilters: BuyerFilters) => {
+    setSearchFilters((prevFilters) => ({
+      ...prevFilters,
+      buyerId: newFilters.buyerId, // No need to convert to a number
+    }));
+    setPage(1); // reset pagination state
+  }, []);
+
   const handleLoadMore = React.useCallback(() => {
     setPage((page) => page + 1);
   }, []);
 
   return (
     <>
+       {/* Buyer filter updates buyerId in searchFilters */}
+      <RecordBuyerFilters
+        buyers={{ buyerId: searchFilters.buyerId }} // Pass buyerId to the buyer filter
+        onChange={handleBuyerFilters} // Handle buyer filter changes
+      />
+      {/* Text search filter updates the entire searchFilters */}
       <RecordSearchFilters
-        filters={searchFilters}
-        onChange={handleChangeFilters}
+        filters={searchFilters} // Pass current search filters (query and buyerId)
+        onChange={handleChangeFilters} // Handle text search changes
       />
       {records && (
         <>

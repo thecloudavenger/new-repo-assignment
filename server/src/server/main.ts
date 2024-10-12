@@ -42,6 +42,7 @@ app.use(express.json());
 
 type RecordSearchFilters = {
   textSearch?: string;
+  buyerId?: string;
 };
 
 /**
@@ -49,34 +50,62 @@ type RecordSearchFilters = {
  */
 async function searchRecords(
   { textSearch }: RecordSearchFilters,
+  { buyerId }: RecordSearchFilters,
   offset: number,
   limit: number
 ): Promise<ProcurementRecord[]> {
+  // Base SQL query
+  let query = "SELECT * FROM procurement_records";
+  
+  // Conditional WHERE clause parts
+  const whereClauses: string[] = [];
+  
   if (textSearch) {
-    return await sequelize.query(
-      "SELECT * FROM procurement_records WHERE title LIKE :textSearch OR description LIKE :textSearch LIMIT :limit OFFSET :offset",
-      {
-        model: ProcurementRecord, // by setting this sequelize will return a list of ProcurementRecord objects
-        replacements: {
-          textSearch: `%${textSearch}%`,
-          offset: offset,
-          limit: limit,
-        },
-      }
-    );
-  } else {
-    return await sequelize.query(
-      "SELECT * FROM procurement_records LIMIT :limit OFFSET :offset",
-      {
-        model: ProcurementRecord,
-        replacements: {
-          offset: offset,
-          limit: limit,
-        },
-      }
-    );
+    whereClauses.push("(title LIKE :textSearch OR description LIKE :textSearch)");
   }
+  
+  if (buyerId && buyerId != '0') {
+    whereClauses.push("buyer_id = :buyerId");
+  }
+  
+  // Add WHERE clause if there are any conditions
+  if (whereClauses.length > 0) {
+    query += " WHERE " + whereClauses.join(" AND ");
+  }
+  
+  // Add LIMIT and OFFSET
+  query += " LIMIT :limit OFFSET :offset";
+  
+  // Execute query with dynamic replacements
+  return await sequelize.query(query, {
+    model: ProcurementRecord, // Return ProcurementRecord objects
+    replacements: {
+      textSearch: textSearch ? `%${textSearch}%` : null,
+      buyerId: buyerId || null,
+      offset: offset,
+      limit: limit,
+    },
+  });
 }
+
+
+/**
+ * Queries the database for a distinct list of buyers.
+ */
+async function getDistinctBuyers(
+): Promise<{ id: string; name: string; }[]> {
+  // Base SQL query for distinct buyers
+  const query = `
+    SELECT DISTINCT id, name 
+    FROM buyers 
+  `;
+
+  // Execute query with dynamic replacements
+  return await sequelize.query(query, {
+    model: Buyer,   
+  });
+}
+
 
 /**
  * Converts a DB-style ProcurementRecord object to an API type.
@@ -161,6 +190,9 @@ app.post("/api/records", async (req, res) => {
     {
       textSearch: requestPayload.textSearch,
     },
+    {
+      buyerId: requestPayload.buyerId
+    },
     offset,
     limit + 1
   );
@@ -178,4 +210,23 @@ app.post("/api/records", async (req, res) => {
 app.listen(app.get("port"), () => {
   console.log("  App is running at http://localhost:%d", app.get("port"));
   console.log("  Press CTRL-C to stop\n");
+});
+
+
+/**
+ * This endpoint implements basic pagination for fetching distinct buyers.
+ * It returns a `endOfResults` flag which is true when there are no more buyers to fetch.
+ */
+app.get("/api/buyers", async (req, res) => {
+ 
+  // Fetch one more buyer than requested to determine if more buyers exist
+  const buyers = await getDistinctBuyers();
+
+  // Prepare response
+  const response = {
+    buyers: buyers // Return only the number of buyers requested
+    
+  };
+
+  res.json(response); // Send the response back to the client
 });
