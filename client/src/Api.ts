@@ -28,7 +28,7 @@ export type BuyerRecord = {
 
 
 export type BuyerRecordsResponse = {
-  records: BuyerRecord[];
+  buyers: BuyerRecord[];
 };
 
 export type SearchRecordsResponse = {
@@ -50,15 +50,21 @@ class Api {
     return await response.json();
   }
 
-  async getBuyers(
-  ): Promise<BuyerRecordsResponse> {
-    const response = await fetch("/api/buyerrecords", {
-      method: "POST",
+  async getBuyers(): Promise<BuyerRecordsResponse> {
+    const response = await fetch("/api/buyers", {
+      method: "GET",
       headers: {
-        "content-type": "application/json",
+        "Content-Type": "application/json",
       },
     });
-    return await response.json();
+  
+    if (!response.ok) {
+      throw new Error(`Failed to fetch buyers: ${response.statusText}`);
+    }
+  
+    const data = await response.json();
+    console.log("Response data:", data); // Check what you're receiving
+    return data;
   }
 }
 

@@ -13,23 +13,36 @@ type Props = {
 
 function RecordBuyerFilters(props: Props) {
   const { buyers, onChange } = props;
-  const [buyerOptions, setBuyerOptions] = useState<BuyerRecord[]>([]); // State to hold buyer options
+  const [buyerOptions, setBuyerOptions] = useState<{ value: string; label: string }[]>([]); // Update state type
 
-  useEffect(() => {
-    const fetchBuyers = async () => {
+  React.useEffect(() => {
+    void (async () => {
+      const api = new Api();
       try {
-        const api = new Api(); // Assuming you have an Api class to handle requests
-        const response = await api.getBuyers(); // Make sure this method exists in your Api class
-        const options = response.records;
+        const response = await api.getBuyers();
+        console.log(response); // Log the full response to see its structure
         
-        setBuyerOptions(response.records);
+        // Check if 'records' exists before mapping
+        if (response) {
+          const options = response.buyers.map((buyer: BuyerRecord) => ({
+            value: buyer.id,
+            label: buyer.name,
+          }));
+          // Add the default option at the start
+          const defaultOption = { value: "0", label: "All" };
+
+          setBuyerOptions([defaultOption, ...options]); // Prepend the default option
+
+        } else {
+          console.error("No records found in response.");
+        }
       } catch (error) {
         console.error("Failed to fetch buyers:", error);
       }
-    };
-
-    fetchBuyers(); // Fetch buyers on component mount
+    })();
   }, []);
+  
+
 
   const handleBuyerChange = (value: string) => {
     console.log(`Selected Buyer ID: ${value}`);
@@ -38,11 +51,10 @@ function RecordBuyerFilters(props: Props) {
 
   return (
     <div>
-      <label htmlFor="buyer-select">Select Buyer:</label>
       <Select
         id="buyer-select"
         value={buyers.buyerId} // Controlled component
-        style={{ width: 120 }}
+        style={{ width: '50%' }}
         onChange={handleBuyerChange}
         options={buyerOptions} // Use the fetched options
       />

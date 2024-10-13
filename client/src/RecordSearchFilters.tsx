@@ -29,6 +29,7 @@ function RecordSearchFilters(props: Props) {
     <div>
       <Input
         placeholder="Search text..."
+        style={{ width: '50%' }}
         value={filters.query}
         onChange={handleQueryChange}
       />

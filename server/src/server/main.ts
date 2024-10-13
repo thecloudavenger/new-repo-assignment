@@ -24,11 +24,11 @@ const sequelize = new Sequelize({
   storage: process.env["SQLITE_DB"] || "./db.sqlite3",
 });
 
-sequelize.addModels([Buyer, ProcurementRecord]);
+sequelize.addModels([Buyer, ProcurementRecord ]);
 
 const app = express();
 
-app.set("port", process.env.PORT || 3000);
+app.set("port", process.env.PORT || 5000);
 app.set("views", "./views");
 app.set("view engine", "ejs");
 
@@ -89,22 +89,26 @@ async function searchRecords(
 }
 
 
-/**
- * Queries the database for a distinct list of buyers.
- */
-async function getDistinctBuyers(
-): Promise<{ id: string; name: string; }[]> {
-  // Base SQL query for distinct buyers
-  const query = `
-    SELECT DISTINCT id, name 
-    FROM buyers 
-  `;
+async function getDistinctBuyers(): Promise<{ id: string; name: string }[]> {
+  try {
+    const buyers = await Buyer.findAll({
+      attributes: [
+        [Sequelize.fn('DISTINCT', Sequelize.col('id')), 'id'],
+        'name'
+      ],
+    });
 
-  // Execute query with dynamic replacements
-  return await sequelize.query(query, {
-    model: Buyer,   
-  });
+    // Return plain object to avoid extra metadata (or directly return as needed)
+    return buyers.map((buyer) => ({
+      id: buyer.id,
+      name: buyer.name,
+    }));
+  } catch (error) {
+    console.error("Error fetching buyers:", error);
+    throw new Error("Failed to fetch buyers");
+  }
 }
+
 
 
 /**
@@ -207,26 +211,22 @@ app.post("/api/records", async (req, res) => {
   res.json(response);
 });
 
-app.listen(app.get("port"), () => {
-  console.log("  App is running at http://localhost:%d", app.get("port"));
-  console.log("  Press CTRL-C to stop\n");
+
+
+
+app.get("/api/buyers", async (req, res) => {
+  try {
+    const buyers = await getDistinctBuyers();
+
+    // Send response back to the client with the list of distinct buyers
+    res.json({ buyers });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve buyers." });
+  }
 });
 
 
-/**
- * This endpoint implements basic pagination for fetching distinct buyers.
- * It returns a `endOfResults` flag which is true when there are no more buyers to fetch.
- */
-app.get("/api/buyers", async (req, res) => {
- 
-  // Fetch one more buyer than requested to determine if more buyers exist
-  const buyers = await getDistinctBuyers();
-
-  // Prepare response
-  const response = {
-    buyers: buyers // Return only the number of buyers requested
-    
-  };
-
-  res.json(response); // Send the response back to the client
+app.listen(app.get("port"), () => {
+  console.log("  App is running at http://localhost:%d", app.get("port"));
+  console.log("  Press CTRL-C to stop\n");
 });

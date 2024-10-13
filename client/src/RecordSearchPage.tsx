@@ -73,16 +73,16 @@ function RecordSearchPage() {
 
   return (
     <>
-       {/* Buyer filter updates buyerId in searchFilters */}
+    <div >
       <RecordBuyerFilters
         buyers={{ buyerId: searchFilters.buyerId }} // Pass buyerId to the buyer filter
         onChange={handleBuyerFilters} // Handle buyer filter changes
       />
-      {/* Text search filter updates the entire searchFilters */}
       <RecordSearchFilters
         filters={searchFilters} // Pass current search filters (query and buyerId)
         onChange={handleChangeFilters} // Handle text search changes
       />
+      </div>
       {records && (
         <>
           <RecordsTable records={records} />

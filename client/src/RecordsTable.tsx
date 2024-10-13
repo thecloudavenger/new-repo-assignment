@@ -14,6 +14,12 @@ function RecordsTable(props: Props) {
     ProcurementRecord | undefined
   >();
 
+  const currencySymbols: { [key: string]: string } = {
+    GBP: "£", // British Pound
+    EUR: "€", // Euro
+    USD: "$", // US Dollar
+  };
+
   const columns = React.useMemo<ColumnType<ProcurementRecord>[]>(() => {
     return [
       {
@@ -45,7 +51,8 @@ function RecordsTable(props: Props) {
           <span>
             {record.value ? (
               <>
-                {record.value} {record.currency}
+                {record.value}{" "}
+                {currencySymbols[record.currency] || record.currency} {}
               </>
             ) : (
               <span>N/A</span>
