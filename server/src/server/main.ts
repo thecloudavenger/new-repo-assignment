@@ -1,5 +1,6 @@
 import express from "express";
 import { Sequelize } from "sequelize-typescript";
+import { Op } from 'sequelize';
 import {
   ProcurementRecordDto,
   RecordSearchRequest,
@@ -42,38 +43,26 @@ async function searchRecords(
   offset: number,
   limit: number
 ): Promise<ProcurementRecord[]> {
-  const { textSearch, buyerId } = filters;
-
-  // Base SQL query
-  let query = "SELECT * FROM procurement_records";
-  const whereClauses: string[] = [];
-
-  if (textSearch) {
-    whereClauses.push("(title LIKE :textSearch OR description LIKE :textSearch)");
+  
+  const where: any = {}; 
+  if (filters.textSearch) {
+    where[Op.or] = [
+      { title: { [Op.like]: `%${filters.textSearch}%` } },
+      { description: { [Op.like]: `%${filters.textSearch}%` } },
+    ];
   }
 
-  if (buyerId && buyerId !== "") {
-    whereClauses.push("buyer_id = :buyerId");
+  if (filters.buyerId && filters.buyerId !== "0") {
+    where.buyer_id = filters.buyerId;
   }
 
-  // Append WHERE clause if conditions exist
-  if (whereClauses.length > 0) {
-    query += " WHERE " + whereClauses.join(" AND ");
-  }
-
-  // Add LIMIT and OFFSET
-  query += " LIMIT :limit OFFSET :offset";
-
-  // Execute query
-  return await sequelize.query(query, {
-    model: ProcurementRecord,
-    replacements: {
-      textSearch: textSearch ? `%${textSearch}%` : null,
-      buyerId: buyerId || null,
-      offset,
-      limit,
-    },
+  const records = await ProcurementRecord.findAll({
+    where, 
+    limit, 
+    offset, 
   });
+
+  return records;
 }
 
 // Helper function to get distinct buyers from the database
@@ -108,7 +97,7 @@ async function serializeProcurementRecords(
   return records.map((r) => serializeProcurementRecord(r, buyersById));
 }
 
-// Helper function to convert a ProcurementRecord object to API DTO format
+
 function serializeProcurementRecord(
   record: ProcurementRecord,
   buyersById: Map<string, Buyer>

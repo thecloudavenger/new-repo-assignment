@@ -7,7 +7,7 @@ type Props = {
   records: ProcurementRecord[];
 };
 
-// Helper function to render currency and value
+
 const renderCurrencyValue = (value: number | null, currency: string) => {
   if (value === null || value === undefined || isNaN(value) || !isFinite(value)) {
     return <span>N/A</span>; // Handle invalid values
@@ -24,7 +24,7 @@ const renderCurrencyValue = (value: number | null, currency: string) => {
   }
 };
 
-// Helper function to render the stage based on procurement status
+
 const renderStage = (record: ProcurementRecord) => {
   const closeDate = record.close_date ? new Date(record.close_date) : null;
   const awardDate = record.award_date ? new Date(record.award_date) : null;
@@ -89,7 +89,7 @@ function RecordsTable({ records }: Props) {
 
   return (
     <>
-      <Table columns={columns} dataSource={records} pagination={false} />
+      <Table columns={columns} dataSource={records.map(record => ({ ...record, key: record.id }))} pagination={false} />
       <ProcurementRecordPreviewModal
         record={previewedRecord}
         onClose={() => setPreviewedRecord(undefined)}

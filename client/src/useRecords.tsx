@@ -12,7 +12,7 @@ export const useRecords = (searchFilters: { query: string; buyerId: string }, pa
   useEffect(() => {
     const fetchRecords = async () => {
       setLoading(true);
-      setError(null); // Reset error before fetching
+      setError(null); 
 
       try {
         const api = new Api();
