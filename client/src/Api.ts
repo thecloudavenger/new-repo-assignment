@@ -91,7 +91,6 @@ class Api {
       }
 
       const data = await response.json();
-      console.log("Response data:", data); 
       return data;
     } catch (error) {
       console.error("Error while fetching buyers:", error);
