@@ -1,6 +1,6 @@
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Select } from "antd";
-import React, { useEffect, useState } from "react";
-import Api, { BuyerRecord } from "./Api"; // Import your API class or service
+import Api, { BuyerRecord } from "./Api";
 
 export type BuyerFilters = {
   buyerId: string;
@@ -11,50 +11,60 @@ type Props = {
   onChange: (newFilters: BuyerFilters) => void;
 };
 
-function RecordBuyerFilters(props: Props) {
-  const { buyers, onChange } = props;
-  const [buyerOptions, setBuyerOptions] = useState<{ value: string; label: string }[]>([]); // Update state type
+function useBuyers() {
+  const [buyers, setBuyers] = useState<BuyerRecord[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void (async () => {
+    const fetchBuyers = async () => {
       const api = new Api();
       try {
         const response = await api.getBuyers();
-        // Check if 'records' exists before mapping
         if (response) {
-          const options = response.buyers.map((buyer: BuyerRecord) => ({
-            value: buyer.id,
-            label: buyer.name,
-          }));
-          // Add the default option at the start
-          const defaultOption = { value: "0", label: "All" };
-
-          setBuyerOptions([defaultOption, ...options]); // Prepend the default option
-
+          setBuyers(response.buyers);
         } else {
-          console.error("No records found in response.");
+          setError("No records found in response.");
         }
       } catch (error) {
-        console.error("Failed to fetch buyers:", error);
+        console.error("Failed to fetch buyers:", error); 
+        setError("Failed to fetch buyers."); //Or Suppress based on UI need
       }
-    })();
+    };
+
+    void fetchBuyers();
   }, []);
-  
 
+  return { buyers, error };
+}
 
-  const handleBuyerChange = (value: string) => {
-    console.log(`Selected Buyer ID: ${value}`);
-    onChange({ buyerId: value }); // Pass the new buyerId back to the parent component
-  };
+function RecordBuyerFilters(props: Props) {
+  const { buyers, onChange } = props;
+  const { buyers: fetchedBuyers, error } = useBuyers();
+
+  const buyerOptions = useMemo(() => {
+    const options = fetchedBuyers.map((buyer) => ({
+      value: buyer.id,
+      label: buyer.name,
+    }));
+    return [{ value: "0", label: "All" }, ...options];
+  }, [fetchedBuyers]);
+
+  const handleBuyerChange = useCallback((value: string) => {
+    onChange({ buyerId: value });
+  }, [onChange]);
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div>
       <Select
         id="buyer-select"
-        value={buyers.buyerId} // Controlled component
+        value={buyers.buyerId}
         style={{ width: '50%' }}
         onChange={handleBuyerChange}
-        options={buyerOptions} // Use the fetched options
+        options={buyerOptions}
       />
     </div>
   );

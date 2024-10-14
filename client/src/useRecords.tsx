@@ -7,6 +7,7 @@ export const useRecords = (searchFilters: { query: string; buyerId: string }, pa
   const [reachedEndOfSearch, setReachedEndOfSearch] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     const fetchRecords = async () => {
@@ -18,8 +19,8 @@ export const useRecords = (searchFilters: { query: string; buyerId: string }, pa
         const response = await api.searchRecords({
           textSearch: searchFilters.query,
           buyerId: searchFilters.buyerId,
-          limit: 10,
-          offset: 10 * (page - 1),
+          limit: PAGE_SIZE,
+          offset: PAGE_SIZE * (page - 1),
         });
 
         if (page === 1) {
