@@ -15,13 +15,11 @@ function RecordBuyerFilters(props: Props) {
   const { buyers, onChange } = props;
   const [buyerOptions, setBuyerOptions] = useState<{ value: string; label: string }[]>([]); // Update state type
 
-  React.useEffect(() => {
+  useEffect(() => {
     void (async () => {
       const api = new Api();
       try {
         const response = await api.getBuyers();
-        console.log(response); // Log the full response to see its structure
-        
         // Check if 'records' exists before mapping
         if (response) {
           const options = response.buyers.map((buyer: BuyerRecord) => ({

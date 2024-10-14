@@ -1,6 +1,6 @@
 import { Input } from "antd";
 import React from "react";
-import { BuyerRecord } from "./Api";
+
 
 export type SearchFilters = {
   query: string;
