@@ -134,8 +134,8 @@ function serializeProcurementRecord(
     value: record.value,
     currency: record.currency,
     stage: record.stage,
-    close_date: record.close_date,
-    award_date: record.award_date,
+    closeDate: record.close_date,
+    awardDate: record.award_date,
     buyer: {
       id: buyer.id,
       name: buyer.name,
