@@ -26,7 +26,7 @@ export const useRecords = (searchFilters: { query: string; buyerId: string }, pa
         if (page === 1) {
           setRecords(response.records);
         } else {
-          setRecords((oldRecords) => [...oldRecords, ...response.records]);
+          setRecords((oldRecords) => [...oldRecords, ...response.records]); 
         }
         setReachedEndOfSearch(response.endOfResults);
       } catch (err) {
