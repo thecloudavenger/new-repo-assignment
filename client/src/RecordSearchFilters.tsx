@@ -1,8 +1,10 @@
 import { Input } from "antd";
 import React from "react";
 
+
 export type SearchFilters = {
   query: string;
+  buyerId : string;
 };
 
 type Props = {
@@ -27,6 +29,7 @@ function RecordSearchFilters(props: Props) {
     <div>
       <Input
         placeholder="Search text..."
+        style={{ width: '50%' }}
         value={filters.query}
         onChange={handleQueryChange}
       />
